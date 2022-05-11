@@ -61,6 +61,9 @@ func (robot *Robot) Instruct(direction string) (bool, error) {
 
 // In GO there is no generic library function to get index of value in slice, so
 // getting the position with the indes +1 or -1 depending on the direction is not as simple as in say JS
+// In JS it could be done using an ordered array of orientations [N,E,S,W] and doing:
+// orientations[(orientations.indexOf(robot.orientation) + 1 (RIGHT) or -1 (LEFT) + 4) % 4]
+
 // It doesnt matter that much though as the orientations are only 4 so the code looks clean enough
 
 // Function to turn right
@@ -162,19 +165,24 @@ func checkLostRobot(x int, y int) bool {
 }
 
 // Scan and set limits from the input text file
-func getInputLimits(scanner *bufio.Scanner) {
+func setInputLimits(scanner *bufio.Scanner) {
 	scanner.Scan()
 
 	limits := scanner.Text()
 
-	limitX, _ = strconv.Atoi(limits[0:1])
-	limitY, _ = strconv.Atoi(limits[2:3])
+	x, _ := strconv.Atoi(limits[0:1])
+	y, _ := strconv.Atoi(limits[2:3])
+
+	if x < 0 || x > 50 || y < 0 || y > 50 {
+		log.Fatal(errors.New("Invalid limits"))
+	}
+
+	limitX = x
+	limitY = y
 }
 
-// Scan and get a robot from the input text file
-func getInputRobot(scanner *bufio.Scanner) Robot {
-	robotPos := scanner.Text()
-
+// Get a robot from the input text position string
+func getInputRobot(robotPos string) Robot {
 	x, _ := strconv.Atoi(robotPos[0:1])
 	y, _ := strconv.Atoi(robotPos[2:3])
 	orientation := robotPos[4:5]
@@ -191,7 +199,7 @@ func processInputInstruction(instructions string, robot *Robot) {
 		var err error
 		gotLost, err = robot.Instruct(char)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 			gotLost = true
 		}
 	}
@@ -223,13 +231,15 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	getInputLimits(scanner)
+	setInputLimits(scanner)
 
 	lostRobots = make(map[string]bool)
 
 	// Loop while there is a line to read
 	for scanner.Scan() {
-		robot := getInputRobot(scanner)
+		robotPos := scanner.Text()
+		robot := getInputRobot(robotPos)
+
 		scanner.Scan()
 		instructions := scanner.Text()
 		// Speed of the algorithm might be improved by running the instructions in gourutines,
