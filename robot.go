@@ -127,7 +127,7 @@ func (robot *Robot) printRobotPos() string {
 func (robot *Robot) advance(x int, y int, env *Environment) bool {
 	if y < 0 || x < 0 || y > env.limitY || x > env.limitX {
 		robot.Lost = true
-		env.lostRobots[strconv.Itoa(x)+" "+strconv.Itoa(y)] = true
+		env.addLostRobot(x, y)
 		return true
 	} else {
 		robot.X = x

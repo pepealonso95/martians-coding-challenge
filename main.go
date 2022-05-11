@@ -16,7 +16,7 @@ func createEnvWithLimits(x int, y int) Environment {
 		log.Fatal(errors.New("Invalid limits"))
 	}
 
-	env := Environment{lostRobots: make(map[string]bool), limitX: x, limitY: y}
+	env := Environment{lostRobots: make(map[string]struct{}), limitX: x, limitY: y}
 
 	return env
 
