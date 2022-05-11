@@ -9,10 +9,22 @@ import (
 	"strconv"
 )
 
+// Position of x coordinate in input string
+const xCoordPos = 0
+
+// Position of y coordinate in input string
+const yCoordPos = 2
+
+// Position of orientation in input string
+const orientationPos = 4
+
+// Max amount of cells in the map
+const mapLimit = 50
+
 // Scan and set limits from the input text file
 func createEnvWithLimits(x int, y int) Environment {
 
-	if x < 0 || x > 50 || y < 0 || y > 50 {
+	if x < 0 || x > mapLimit || y < 0 || y > mapLimit {
 		log.Fatal(errors.New("Invalid limits"))
 	}
 
@@ -24,11 +36,12 @@ func createEnvWithLimits(x int, y int) Environment {
 
 // Get a robot from the input text position string
 func getInputRobot(robotPos string) Robot {
-	x, _ := strconv.Atoi(robotPos[0:1])
-	y, _ := strconv.Atoi(robotPos[2:3])
-	orientation := robotPos[4:5]
-
-	return Robot{X: x, Y: y, Orientation: orientation, Lost: false}
+	x, _ := strconv.Atoi(string(robotPos[xCoordPos]))
+	y, _ := strconv.Atoi(string(robotPos[yCoordPos]))
+	orientation := string(robotPos[orientationPos])
+	robot := Robot{X: x, Y: y, Lost: false}
+	robot.setOrientation(orientation)
+	return robot
 }
 
 // Takes the input string instructions, makes the robot process them and prints the result
@@ -75,8 +88,8 @@ func main() {
 
 	limits := scanner.Text()
 
-	x, _ := strconv.Atoi(limits[0:1])
-	y, _ := strconv.Atoi(limits[2:3])
+	x, _ := strconv.Atoi(string(limits[xCoordPos]))
+	y, _ := strconv.Atoi(string(limits[yCoordPos]))
 
 	env := createEnvWithLimits(x, y)
 
