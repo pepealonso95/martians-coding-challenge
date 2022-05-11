@@ -23,10 +23,10 @@ func (robot *Robot) GetPos() string {
 }
 
 // Decides how to process the given instruction for the robot
-func (robot *Robot) Instruct(direction string) (bool, error) {
+func (robot *Robot) Instruct(direction string, env *Environment) (bool, error) {
 	switch direction {
 	case "F":
-		return robot.Move()
+		return robot.Move(env)
 	case "L":
 		return robot.TurnLeft()
 	case "R":
@@ -87,28 +87,28 @@ func (robot *Robot) TurnLeft() (bool, error) {
 }
 
 // Checks in which direction and lets the robot advance if no lost robot is on its way
-func (robot *Robot) Move() (bool, error) {
+func (robot *Robot) Move(env *Environment) (bool, error) {
 	switch robot.Orientation {
 	case "N":
-		if checkLostRobot(robot.X, robot.Y+1) {
+		if env.checkLostRobot(robot.X, robot.Y+1) {
 			return false, nil
 		}
-		return robot.advance(robot.X, robot.Y+1), nil
+		return robot.advance(robot.X, robot.Y+1, env), nil
 	case "E":
-		if checkLostRobot(robot.X+1, robot.Y) {
+		if env.checkLostRobot(robot.X+1, robot.Y) {
 			return false, nil
 		}
-		return robot.advance(robot.X+1, robot.Y), nil
+		return robot.advance(robot.X+1, robot.Y, env), nil
 	case "W":
-		if checkLostRobot(robot.X-1, robot.Y) {
+		if env.checkLostRobot(robot.X-1, robot.Y) {
 			return false, nil
 		}
-		return robot.advance(robot.X-1, robot.Y), nil
+		return robot.advance(robot.X-1, robot.Y, env), nil
 	case "S":
-		if checkLostRobot(robot.X, robot.Y-1) {
+		if env.checkLostRobot(robot.X, robot.Y-1) {
 			return false, nil
 		}
-		return robot.advance(robot.X, robot.Y-1), nil
+		return robot.advance(robot.X, robot.Y-1, env), nil
 	default:
 		return true, errors.New("Invalid orientation")
 	}
@@ -124,10 +124,10 @@ func (robot *Robot) printRobotPos() string {
 }
 
 // Advance the robot to the next position or report it as lost and keep its last seen position
-func (robot *Robot) advance(x int, y int) bool {
-	if y < 0 || x < 0 || y > limitY || x > limitX {
+func (robot *Robot) advance(x int, y int, env *Environment) bool {
+	if y < 0 || x < 0 || y > env.limitY || x > env.limitX {
 		robot.Lost = true
-		lostRobots[strconv.Itoa(x)+" "+strconv.Itoa(y)] = true
+		env.lostRobots[strconv.Itoa(x)+" "+strconv.Itoa(y)] = true
 		return true
 	} else {
 		robot.X = x

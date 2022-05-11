@@ -9,43 +9,17 @@ import (
 	"strconv"
 )
 
-// Storing limits and lost robots as global variables is not the best way to do this
-// when the program is running in a container or scales, but it works for now
-
-var limitX int
-var limitY int
-
-// Lost robots are stored in a map to make it as fast as possible to check if a robot has been lost
-// A matrix is possible too by knowing the max limits of 50x50, however its not as efficient in memory
-// and potentially applied to a real world scenario, storing every single position in mars
-// just to check lost robots would be far too much to handle
-
-var lostRobots map[string]bool
-
-// Check if the coordinates have a lost robot
-func checkLostRobot(x int, y int) bool {
-	pos := strconv.Itoa(x) + " " + strconv.Itoa(y)
-	if val, ok := lostRobots[pos]; ok {
-		return val
-	}
-	return false
-}
-
 // Scan and set limits from the input text file
-func setInputLimits(scanner *bufio.Scanner) {
-	scanner.Scan()
-
-	limits := scanner.Text()
-
-	x, _ := strconv.Atoi(limits[0:1])
-	y, _ := strconv.Atoi(limits[2:3])
+func createEnvWithLimits(x int, y int) Environment {
 
 	if x < 0 || x > 50 || y < 0 || y > 50 {
 		log.Fatal(errors.New("Invalid limits"))
 	}
 
-	limitX = x
-	limitY = y
+	env := Environment{lostRobots: make(map[string]bool), limitX: x, limitY: y}
+
+	return env
+
 }
 
 // Get a robot from the input text position string
@@ -58,12 +32,12 @@ func getInputRobot(robotPos string) Robot {
 }
 
 // Takes the input string instructions, makes the robot process them and prints the result
-func processInputInstruction(instructions string, robot *Robot) {
+func processInputInstruction(instructions string, robot *Robot, env *Environment) {
 	gotLost := false
 	for i := 0; i < len(instructions) && !robot.Lost && !gotLost; i++ {
 		char := string(instructions[i])
 		var err error
-		gotLost, err = robot.Instruct(char)
+		gotLost, err = robot.Instruct(char, env)
 		if err != nil {
 			log.Fatal(err)
 			gotLost = true
@@ -97,9 +71,14 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	setInputLimits(scanner)
+	scanner.Scan()
 
-	lostRobots = make(map[string]bool)
+	limits := scanner.Text()
+
+	x, _ := strconv.Atoi(limits[0:1])
+	y, _ := strconv.Atoi(limits[2:3])
+
+	env := createEnvWithLimits(x, y)
 
 	// Loop while there is a line to read
 	for scanner.Scan() {
@@ -110,7 +89,7 @@ func main() {
 		instructions := scanner.Text()
 		// Speed of the algorithm might be improved by running the instructions in gourutines,
 		// however the expected output suggests that the order of instructions are important
-		processInputInstruction(instructions, &robot)
+		processInputInstruction(instructions, &robot, &env)
 	}
 
 	if err := scanner.Err(); err != nil {
