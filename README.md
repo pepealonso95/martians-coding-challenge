@@ -4,8 +4,6 @@ With go installed:
 
 Run:
 ```
-go mod init "PROJECT-NAME"
-
 go run .
 ```
 
